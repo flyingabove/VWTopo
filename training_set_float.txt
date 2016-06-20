@@ -1,0 +1,6 @@
+1 | age:1 gender:2 religion:3
+2 | age:2 gender:3 religion:4
+3 | age:4 gender:5 religion:6
+4 | age:5 gender:6 religion:7
+5 | age:6 gender:7 religion:8
+6 | age:7 gender:8 religion:9

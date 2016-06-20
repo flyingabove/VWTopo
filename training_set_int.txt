@@ -1,0 +1,7 @@
+ignore first line
+1 | I hate snakes
+2 | I love my mom
+1 | life is pain
+2 | life is love
+3 | winter is coming prepare yourselves
+1 | harrypotter is the worst actor
