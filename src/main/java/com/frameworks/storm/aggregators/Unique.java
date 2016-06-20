@@ -1,4 +1,4 @@
-package com.frameworks.storm.operation;
+package com.frameworks.storm.aggregators;
 
 import backtype.storm.tuple.Values;
 import lombok.extern.slf4j.Slf4j;

@@ -1,1 +1,4 @@
-1 | I hate snakes
+| I hate snakes
+| I love snakes
+| I love to eat
+| winter is good

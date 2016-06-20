@@ -4,7 +4,9 @@ import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.tuple.Fields;
+import com.frameworks.storm.aggregators.Unique;
 import com.frameworks.storm.debug.Debug;
+import com.frameworks.storm.operation.KafkaFieldGenerator;
 import com.frameworks.storm.operation.VWPredictFieldGenerator;
 import com.frameworks.storm.providers.SpoutProvider;
 import com.frameworks.storm.state.vw.floatstate.VWTridentFloatQuery;
@@ -13,6 +15,7 @@ import com.frameworks.storm.state.vw.floatstate.VWTridentFloatStateFactory;
 import com.frameworks.storm.state.vw.intstate.VWTridentIntQuery;
 import com.frameworks.storm.state.vw.intstate.VWTridentIntStateFactory;
 import com.frameworks.storm.state.vw.intstate.VWTridentIntUpdater;
+import kafka.Kafka;
 import lombok.extern.slf4j.Slf4j;
 import storm.kafka.BrokerHosts;
 import storm.kafka.StringScheme;
@@ -62,6 +65,8 @@ public class VWTopology {
     trainingStream
             .each(new Fields("str"),new Debug("training"),new Fields())
             .partitionPersist(new VWTridentIntStateFactory(init),new Fields("str","ts"),new VWTridentIntUpdater("str","ts")).newValuesStream()
+            .each(new Fields(), new KafkaFieldGenerator(),new Fields("field"))
+            .aggregate(new Fields("field"), new Unique(),new Fields())
             .each(new Fields(),vwp,new Fields("predStr"))
             .stateQuery(vwIntState,new Fields("predStr"),new VWTridentIntQuery("predStr"),new Fields("prediction"))
             .each(new Fields("prediction"),new Debug("prediction"),new Fields());
