@@ -1,6 +1,7 @@
 package com.frameworks.storm.topology;
 
 import backtype.storm.LocalCluster;
+import com.frameworks.storm.debug.Debug;
 import com.frameworks.storm.operation.KafkaFieldGenerator;
 import com.frameworks.storm.providers.SpoutProvider;
 import storm.kafka.BrokerHosts;
@@ -47,7 +48,7 @@ public class KafkaConsumeTopology {
     SpoutProvider sp = new SpoutProvider("training_set_int.txt");
     Stream stream = topology.newStream("spout1", sp.createSpout())
             .each(new Fields("str"),new KafkaFieldGenerator(), new Fields("key","string"))
-            .each(new Fields("key","string"),new com.frameworks.storm.debug.Debug(),new Fields());
+            .each(new Fields("key","string"),new Debug("kafka"),new Fields());
 
     StateFactory stateFactory = new TridentKafkaStateFactory()
             .withKafkaTopicSelector(new DefaultTopicSelector("sts.debug.topic"))

@@ -5,6 +5,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.tuple.Fields;
 import com.frameworks.storm.debug.Debug;
+import com.frameworks.storm.operation.VWPredictFieldGenerator;
 import com.frameworks.storm.providers.SpoutProvider;
 import com.frameworks.storm.state.vw.floatstate.VWTridentFloatQuery;
 import com.frameworks.storm.state.vw.floatstate.VWTridentFloatUpdater;
@@ -46,39 +47,28 @@ public class VWTopology {
     return(spout);
   }
 
-  private void getTrainingTopology()throws Exception{
+  private void getTrainingTopologyInt()throws Exception{
     TridentTopology topology = new TridentTopology();
     SpoutProvider sp = new SpoutProvider("training_set_int.txt");
     SpoutProvider sp2 = new SpoutProvider("test_set_int.txt");
     Stream trainingStream = topology.newStream("spout1", sp.createSpout());
-    //sp = new SpoutProvider("training_set_int.txt");
-    Stream predictionStream = topology.newStream("spout2", sp2.createSpout());
-
-    Stream mergedStream = topology.merge(trainingStream, predictionStream);
-
-    /*TridentState vwFloatState = stream
-            .partitionPersist(new VWTridentFloatStateArrayFactory(init),new Fields("str","ts"),new VWTridentFloatArrayUpdater("str","ts"));
-
-    stream.stateQuery(vwFloatState,new Fields("str"),new VWTridentFloatArrayQuery("str"),new Fields("prediction"))
-    .each(new Fields("prediction"),new Debug(),new Fields());*/
 
     TridentState vwIntState = trainingStream
-            .each(new Fields("str"),new Debug(),new Fields())
+            .each(new Fields("str"),new Debug("Init"),new Fields())
             .partitionPersist(new VWTridentIntStateFactory(init),new Fields("str","ts"),new VWTridentIntUpdater("str","ts"));
 
-    predictionStream.stateQuery(vwIntState,new Fields("str"),new VWTridentIntQuery("str"),new Fields("prediction"))
-            .each(new Fields("prediction"),new Debug(),new Fields());
+    VWPredictFieldGenerator vwp = new VWPredictFieldGenerator("test_set_int.txt");
 
-
-    /*
-            .each(new Fields("str"),new KafkaFieldGenerator(), new Fields("key","string"))
-            .each(new Fields("key","string"),new com.frameworks.storm.debug.Debug(),new Fields());*/
+    trainingStream
+            .each(new Fields("str"),new Debug("training"),new Fields())
+            .partitionPersist(new VWTridentIntStateFactory(init),new Fields("str","ts"),new VWTridentIntUpdater("str","ts")).newValuesStream()
+            .each(new Fields(),vwp,new Fields("predStr"))
+            .stateQuery(vwIntState,new Fields("predStr"),new VWTridentIntQuery("predStr"),new Fields("prediction"))
+            .each(new Fields("prediction"),new Debug("prediction"),new Fields());
 
     StateFactory stateFactory = new TridentKafkaStateFactory()
             .withKafkaTopicSelector(new DefaultTopicSelector("sts.debug.topic"))
             .withTridentTupleToKafkaMapper(new FieldNameBasedTupleToKafkaMapper<String, String>("key", "string"));
-
-    //stream.partitionPersist(stateFactory, new Fields("key","string"), new TridentKafkaUpdater(), new Fields("key","string"));
 
     Config conf = new Config();
 
@@ -101,7 +91,7 @@ public class VWTopology {
 
   public static void main(String args[]){
 
-    try{new VWTopology().getTrainingTopology();}
+    try{new VWTopology().getTrainingTopologyInt();}
     catch(Exception e){
       e.printStackTrace();
 

@@ -1,4 +1,3 @@
-ignore first line
 1 | I hate snakes
 2 | I love my mom
 1 | life is pain

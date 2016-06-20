@@ -1,2 +1,1 @@
-ignore first line
 1 | I hate snakes

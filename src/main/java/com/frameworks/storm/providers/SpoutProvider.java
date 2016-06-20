@@ -13,10 +13,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 @Slf4j
 @Setter
@@ -41,10 +38,9 @@ public class SpoutProvider {
     private static final long serialVersionUID = -3587144552523719158L;
 
     //private final long delay;
-    private int batchSize=100;
+    private int batchSize=200;
     private int tickerPause=1000; //pause in milliseconds between each tuple
     FileReader fileReader;
-    String line;
     TopologyContext context;
     BufferedReader bufferedReader;
 
@@ -52,36 +48,36 @@ public class SpoutProvider {
     public void open(Map conf, TopologyContext context) {
 
       this.context = context;
-      //String fileName = "WASvsORL.csv";
-      //String fileName = "OKCvsGSW.csv";
       try {
         this.fileReader = new FileReader(this.fileName);
         log.info("preparing file reader");
         //Thread.sleep(1000);
-        return;
-      } catch (IOException ex) {ex.printStackTrace();
+        this.bufferedReader = new BufferedReader(fileReader);
+      } catch (IOException ex) {
+        ex.printStackTrace();
       }
     }
 
-
-    public long getTimestamp() {return System.nanoTime();}
+    public long getTimestamp() {
+      return System.nanoTime();
+    }
 
     @Override
     public void emitBatch(long batchId, TridentCollector collector) {
 
-      this.bufferedReader = new BufferedReader(fileReader);
-
       try {
-        if ((line = bufferedReader.readLine()) == null) {log.info("done with stream"); Thread.sleep(100000); return;}
-        for (int i = 1; (i <= batchSize)&((line = bufferedReader.readLine()) != null); i++) {
-          collector.emit(new Values(line,getTimestamp()));
+        for (int i = 1; (i <= batchSize); i++) {
+          final long timestamp = getTimestamp();
+          final String line = bufferedReader.readLine();
+          if (line == null) {
+            break;
+          }
+          log.info("Emitting {} with timestamp {}", line, timestamp);
+          collector.emit(new Values(line, timestamp));
         }
-        //log.info("Batchsize"+batchSize);
-        //Thread.sleep(tickerPause);
         return;
       }
       catch (IOException ex) {ex.printStackTrace();}
-      catch(InterruptedException ex){Thread.currentThread().interrupt();}
     }
 
     @Override

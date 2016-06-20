@@ -24,13 +24,17 @@ import storm.trident.tuple.TridentTuple;
 @Slf4j
 public class Debug extends BaseFunction
 {
+    String name;
+
+    public Debug(String name){
+        this.name = name;
+
+    }
   @Override
     public void execute(TridentTuple tuple, TridentCollector collector) {
 
-        //System.out.println("TEST: "+rowKey);
-        log.info("TUPLE: " + tuple.toString());
-
-    //collector.emit(tuple);
+      log.info(name + " :" + tuple.toString());
+      collector.emit(tuple);
 
     }
 }

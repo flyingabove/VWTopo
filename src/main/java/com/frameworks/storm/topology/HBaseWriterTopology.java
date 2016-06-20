@@ -66,7 +66,7 @@ public class HBaseWriterTopology {
     TridentTopology topology = new TridentTopology();
     topology.newStream("spout1", new SpoutProvider("fileName").createSpout())
             .each(new Fields(),new HBaseFieldGenerator(),fields)
-            .each(new Fields("key"),new Debug(),new Fields())
+            .each(new Fields("key"),new Debug("hbase"),new Fields())
             .partitionPersist(factory, fields,  new HBaseUpdater(), new Fields());;
 
     Config conf = new Config();
